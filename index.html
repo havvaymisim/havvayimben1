@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Impact Calculator - Clothing Footprint</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    padding: 60px 0;
+}
+
+.floating-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.floating-icon {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.3);
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-icon:nth-child(1) {
+    left: 10%;
+    animation-delay: 0s;
+    animation-duration: 8s;
+}
+
+.floating-icon:nth-child(2) {
+    left: 50%;
+    animation-delay: 2s;
+    animation-duration: 10s;
+}
+
+.floating-icon:nth-child(3) {
+    right: 10%;
+    animation-delay: 4s;
+    animation-duration: 7s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+    25% { transform: translateY(-20px) rotate(5deg); opacity: 0.6; }
+    50% { transform: translateY(-40px) rotate(10deg); opacity: 1; }
+    75% { transform: translateY(-20px) rotate(5deg); opacity: 0.6; }
+}
+
+.main-title {
+    font-size: 3.5rem;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.gradient-text {
+    background: linear-gradient(45deg, #fff, #f0f8ff, #fff);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    animation: textGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes textGlow {
+    from { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)); }
+    to { filter: drop-shadow(0 0 30px rgba(255, 255, 255, 1)); }
+}
+
+.subtitle {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 300;
+    position: relative;
+    z-index: 2;
+}
+
+/* Navigation */
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.nav-tab {
+    padding: 15px 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.nav-tab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.nav-tab.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+/* Section Styles */
+.section {
+    display: none;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.section.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Calculator Styles */
+.calculator-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    margin-bottom: 40px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+    width: 33.33%;
+}
+
+.question-card, .results-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.question-card:hover, .results-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+}
+
+.question-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #667eea;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.bounce {
+    animation: bounce 2s infinite;
+}
+
+.rotate {
+    animation: rotate 3s linear infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.question-card h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.question-desc {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.input-group {
+    margin: 30px 0;
+}
+
+.slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #f093fb, #f5576c);
+    outline: none;
+    -webkit-appearance: none;
+    margin-bottom: 20px;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 3px solid #f5576c;
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 3px solid #f5576c;
+    transition: all 0.2s ease;
+}
+
+.value-display {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 15px 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-next, .btn-restart {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-next:hover, .btn-restart:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+}
+
+.btn-next::before, .btn-restart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-next:hover::before, .btn-restart:hover::before {
+    left: 100%;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Results Styles */
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.results-header i {
+    font-size: 2.5rem;
+    color: #667eea;
+}
+
+.impact-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.metric-icon.water {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.metric-icon.carbon {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.metric-icon.waste {
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    color: #333;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.recommendations {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 30px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.recommendations h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.impact-summary {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
+    border-radius: 15px;
+    border: 2px solid rgba(79, 172, 254, 0.2);
+}
+
+.impact-summary h4 {
+    color: #333;
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.recommendations-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.recommendation-item:hover {
+    transform: translateX(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.rec-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.rec-content {
+    flex: 1;
+}
+
+.rec-content h5 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.rec-content p {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.impact-badge {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* Awareness Section */
+.awareness-content, .tips-content {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 40px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 25px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #f5576c;
+    margin-bottom: 10px;
+}
+
+.stat-text {
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.pollution-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.fact-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.fact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.fact-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.fact-card p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Tips Section */
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.tip-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.tip-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.tip-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.tip-card:hover .tip-icon {
+    transform: rotate(360deg);
+}
+
+.tip-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.tip-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Particles */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: floatParticle 20s linear infinite;
+}
+
+@keyframes floatParticle {
+    from {
+        transform: translateY(100vh) translateX(0px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100px) translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .question-card, .results-card {
+        padding: 25px;
+        margin: 0 10px;
+    }
+    
+    .nav-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .nav-tab {
+        width: 200px;
+    }
+    
+    .impact-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid, .pollution-facts, .tips-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .recommendation-item {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* CSS Help Section Styles */
+.css-help-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.css-topics {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.css-topic-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    padding: 30px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.css-topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.css-topic-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.css-topic-header i {
+    font-size: 2rem;
+    color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 15px;
+    border-radius: 50%;
+}
+
+.css-topic-header h3 {
+    color: #333;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.css-code-block {
+    margin-bottom: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.code-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.css-code-block pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.css-code-block code {
+    color: #e2e8f0;
+}
+
+/* Syntax highlighting */
+.css-code-block pre code {
+    color: #a78bfa;
+}
+
+.css-demo {
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(79, 172, 254, 0.2);
+}
+
+/* Demo styles for two-column */
+.demo-two-column {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+}
+
+.demo-image {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 2rem;
+}
+
+.demo-text {
+    flex: 1;
+    padding: 1rem;
+}
+
+.demo-text h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.demo-text p {
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Demo styles for circles */
+.demo-circles {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.demo-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.demo-circle.gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.demo-circle.bordered {
+    border: 3px solid #667eea;
+    background: white;
+    color: #667eea;
+}
+
+.demo-circle.textured {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+/* Demo styles for flex images */
+.demo-flex-images {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.demo-img {
+    flex: 1;
+    min-width: 100px;
+    height: 80px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+/* Bonus tips */
+.css-bonus-tips {
+    margin-top: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.css-bonus-tips h3 {
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8rem;
+}
+
+.bonus-tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.bonus-tip {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.bonus-tip h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.bonus-tip pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Responsive for CSS help section */
+@media (max-width: 768px) {
+    .css-topic-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .demo-two-column {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .demo-circles {
+        justify-content: space-around;
+    }
+    
+    .demo-circle {
+        width: 80px;
+        height: 80px;
+        font-size: 0.7rem;
+    }
+    
+    .bonus-tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .css-code-block pre {
+        font-size: 0.8rem;
+    }
+}
+
+/* About Us Section Styles */
+.about-content {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.about-intro {
+    margin-bottom: 50px;
+}
+
+.intro-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 25px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.intro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.intro-card h3 {
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.intro-card p {
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.team-section {
+    margin-bottom: 50px;
+}
+
+.team-title {
+    text-align: center;
+    font-size: 2.2rem;
+    color: white;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.team-grid {
+    display: flex;
+    justify-content: center;
+}
+
+.team-member {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    text-align: center;
+    max-width: 500px;
+}
+
+.team-member:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.member-avatar {
+    margin-bottom: 25px;
+}
+
+.avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 3rem;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.team-member:hover .avatar-circle {
+    transform: rotate(360deg) scale(1.1);
+}
+
+.member-info h4 {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.member-role {
+    color: #667eea;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.member-bio {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.member-stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.stat i {
+    color: #667eea;
+}
+
+.stat span {
+    color: #333;
+    font-weight: 500;
+}
+
+.values-section {
+    margin-bottom: 50px;
+}
+
+.values-title {
+    text-align: center;
+    font-size: 2.2rem;
+    color: white;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.value-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.value-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.value-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.8rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.value-card:hover .value-icon {
+    transform: scale(1.1) rotate(10deg);
+}
+
+.value-card h4 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.value-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.contact-section {
+    text-align: center;
+}
+
+.contact-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.contact-card h3 {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+
+.contact-card p {
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-contact {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-contact:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive for About section */
+@media (max-width: 768px) {
+    .team-member {
+        padding: 30px 20px;
+    }
+    
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+    
+    .member-stats {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .values-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .contact-card {
+        padding: 30px 20px;
+    }
+};
+}
+
+.css-code-block {
+    margin-bottom: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.code-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.css-code-block pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.css-code-block code {
+    color: #e2e8f0;
+}
+
+/* Syntax highlighting */
+.css-code-block pre code {
+    color: #a78bfa;
+}
+
+.css-demo {
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(79, 172, 254, 0.2);
+}
+
+/* Demo styles for two-column */
+.demo-two-column {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+}
+
+.demo-image {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 2rem;
+}
+
+.demo-text {
+    flex: 1;
+    padding: 1rem;
+}
+
+.demo-text h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.demo-text p {
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Demo styles for circles */
+.demo-circles {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.demo-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.demo-circle.gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.demo-circle.bordered {
+    border: 3px solid #667eea;
+    background: white;
+    color: #667eea;
+}
+
+.demo-circle.textured {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+/* Demo styles for flex images */
+.demo-flex-images {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.demo-img {
+    flex: 1;
+    min-width: 100px;
+    height: 80px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+/* Bonus tips */
+.css-bonus-tips {
+    margin-top: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.css-bonus-tips h3 {
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8rem;
+}
+
+.bonus-tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.bonus-tip {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.bonus-tip h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.bonus-tip pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Responsive for CSS help section */
+@media (max-width: 768px) {
+    .css-topic-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .demo-two-column {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .demo-circles {
+        justify-content: space-around;
+    }
+    
+    .demo-circle {
+        width: 80px;
+        height: 80px;
+        font-size: 0.7rem;
+    }
+    
+    .bonus-tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .css-code-block pre {
+        font-size: 0.8rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="floating-icons">
+                <i class="fas fa-tshirt floating-icon"></i>
+                <i class="fas fa-leaf floating-icon"></i>
+                <i class="fas fa-globe floating-icon"></i>
+            </div>
+            <h1 class="main-title">
+                <span class="gradient-text">Virtual Impact Calculator</span>
+            </h1>
+            <p class="subtitle">Discover your clothing's environmental footprint</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="calculator">Calculator</button>
+            <button class="nav-tab" data-section="awareness">Textile Pollution</button>
+            <button class="nav-tab" data-section="tips">Eco Tips</button>
+            <button class="nav-tab" data-section="about">About Us</button>
+        </nav>
+
+        <!-- Calculator Section -->
+        <section id="calculator" class="section active">
+            <div class="calculator-container">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                
+                <div class="question-card" id="question1">
+                    <div class="question-icon">
+                        <i class="fas fa-shopping-bag pulse"></i>
+                    </div>
+                    <h2>How many clothing items do you own?</h2>
+                    <p class="question-desc">Include shirts, pants, dresses, shoes, and accessories</p>
+                    <div class="input-group">
+                        <input type="range" id="clothingCount" min="10" max="500" value="50" class="slider">
+                        <div class="value-display">
+                            <span id="clothingValue">50</span> items
+                        </div>
+                    </div>
+                    <button class="btn-next" onclick="nextQuestion()">Next Question</button>
+                </div>
+
+                <div class="question-card hidden" id="question2">
+                    <div class="question-icon">
+                        <i class="fas fa-recycle bounce"></i>
+                    </div>
+                    <h2>How often do you wear each item per month?</h2>
+                    <p class="question-desc">On average, how many times do you wear each piece?</p>
+                    <div class="input-group">
+                        <input type="range" id="wearFrequency" min="1" max="20" value="3" class="slider">
+                        <div class="value-display">
+                            <span id="wearValue">3</span> times/month
+                        </div>
+                    </div>
+                    <button class="btn-next" onclick="nextQuestion()">Next Question</button>
+                </div>
+
+                <div class="question-card hidden" id="question3">
+                    <div class="question-icon">
+                        <i class="fas fa-heart rotate"></i>
+                    </div>
+                    <h2>How long do you typically keep clothes?</h2>
+                    <p class="question-desc">Before donating, discarding, or replacing them</p>
+                    <div class="input-group">
+                        <input type="range" id="clothingLifespan" min="6" max="120" value="24" class="slider">
+                        <div class="value-display">
+                            <span id="lifespanValue">24</span> months
+                        </div>
+                    </div>
+                    <button class="btn-next" onclick="calculateFootprint()">Calculate My Impact</button>
+                </div>
+
+                <div class="results-card hidden" id="results">
+                    <div class="results-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h2>Your Clothing Footprint</h2>
+                    </div>
+                    
+                    <div class="impact-metrics">
+                        <div class="metric-card">
+                            <div class="metric-icon water">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                            <div class="metric-value" id="waterImpact">0</div>
+                            <div class="metric-label">Liters of water per year</div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon carbon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="metric-value" id="carbonImpact">0</div>
+                            <div class="metric-label">kg CO₂ emissions per year</div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon waste">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <div class="metric-value" id="wasteImpact">0</div>
+                            <div class="metric-label">kg textile waste per year</div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <h3>Your Personalized Recommendations</h3>
+                        <div id="recommendationsList"></div>
+                    </div>
+
+                    <button class="btn-restart" onclick="restartCalculator()">
+                        <i class="fas fa-redo"></i> Calculate Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Awareness Section -->
+        <section id="awareness" class="section">
+            <div class="awareness-content">
+                <h2 class="section-title">The Hidden Cost of Fashion</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-water"></i>
+                        </div>
+                        <div class="stat-number">2,700</div>
+                        <div class="stat-text">Liters of water to make one cotton t-shirt</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="stat-number">10%</div>
+                        <div class="stat-text">Of global carbon emissions from fashion industry</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-number">60%</div>
+                        <div class="stat-text">More clothes bought than 15 years ago</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number">1</div>
+                        <div class="stat-text">Garbage truck of textiles wasted every second</div>
+                    </div>
+                </div>
+
+                <div class="pollution-facts">
+                    <div class="fact-card">
+                        <h3>💧 Water Pollution</h3>
+                        <p>Textile dyeing is the second-largest polluter of water globally. The fashion industry uses 93 billion cubic meters of water annually.</p>
+                    </div>
+                    
+                    <div class="fact-card">
+                        <h3>🏭 Chemical Impact</h3>
+                        <p>Over 3,500 chemicals are used in textile production, many of which are harmful to human health and the environment.</p>
+                    </div>
+                    
+                    <div class="fact-card">
+                        <h3>🗑️ Textile Waste</h3>
+                        <p>The equivalent of one garbage truck full of clothes is burned or dumped in landfills every second worldwide.</p>
+                    </div>
+                    
+                    <div class="fact-card">
+                        <h3>🌍 Microplastics</h3>
+                        <p>Synthetic clothing releases 500,000 tons of microfibers into the ocean each year - equivalent to 50 billion plastic bottles.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tips Section -->
+        <section id="tips" class="section">
+            <div class="tips-content">
+                <h2 class="section-title">Sustainable Fashion Tips</h2>
+                
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3>Buy Less, Choose Well</h3>
+                        <p>Invest in quality pieces that last longer rather than fast fashion items.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h3>Swap & Share</h3>
+                        <p>Organize clothing swaps with friends or use clothing rental services for special occasions.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3>Repair & Upcycle</h3>
+                        <p>Learn basic sewing skills to extend your clothes' life and transform old pieces.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3>Choose Eco-Fabrics</h3>
+                        <p>Look for organic cotton, linen, hemp, and recycled materials when shopping.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <h3>Donate Responsibly</h3>
+                        <p>Give clothes a second life by donating to local charities or textile recycling programs.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <h3>Care Properly</h3>
+                        <p>Wash clothes in cold water, air dry when possible, and follow care instructions to extend lifespan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="section">
+            <div class="about-content">
+                <h2 class="section-title">About Us</h2>
+                
+                <div class="about-intro">
+                    <div class="intro-card">
+                        <h3>🌍 Our Mission</h3>
+                        <p>We believe that every small action towards sustainability can create a significant impact. Our Virtual Impact Calculator helps individuals understand their clothing footprint and provides actionable steps to reduce environmental impact through conscious fashion choices.</p>
+                    </div>
+                </div>
+
+                <div class="team-section">
+                    <h3 class="team-title">Meet Our Team</h3>
+                    
+                    <div class="team-grid">
+                        <div class="team-member">
+                            <div class="member-avatar">
+                                <div class="avatar-circle">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="member-info">
+                                <h4>Havvanur Dere</h4>
+                                <p class="member-role">Founder & Environmental Advocate</p>
+                                <p class="member-bio">Passionate about sustainable fashion and environmental consciousness. Dedicated to making environmental impact data accessible and actionable for everyone.</p>
+                                <div class="member-stats">
+                                    <div class="stat">
+                                        <i class="fas fa-leaf"></i>
+                                        <span>Eco Warrior</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-heart"></i>
+                                        <span>Sustainability Expert</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="values-section">
+                    <h3 class="values-title">Our Values</h3>
+                    <div class="values-grid">
+                        <div class="value-card">
+                            <div class="value-icon">
+                                <i class="fas fa-recycle"></i>
+                            </div>
+                            <h4>Sustainability First</h4>
+                            <p>We prioritize environmental protection and sustainable practices in everything we do.</p>
+                        </div>
+                        
+                        <div class="value-card">
+                            <div class="value-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h4>Education & Awareness</h4>
+                            <p>Knowledge is power. We make complex environmental data simple and actionable.</p>
+                        </div>
+                        
+                        <div class="value-card">
+                            <div class="value-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4>Community Impact</h4>
+                            <p>Together we can create meaningful change for our planet's future.</p>
+                        </div>
+                        
+                        <div class="value-card">
+                            <div class="value-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Data-Driven Solutions</h4>
+                            <p>Our recommendations are based on real environmental research and industry data.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-section">
+                    <div class="contact-card">
+                        <h3>🌟 Join Our Mission</h3>
+                        <p>Ready to make a difference? Start by calculating your clothing footprint and discover how you can contribute to a more sustainable future.</p>
+                        <button class="btn-contact" onclick="switchToCalculator()">
+                            <i class="fas fa-calculator"></i> Start Your Impact Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+// Global variables
+let currentQuestion = 1;
+let userData = {
+    clothingCount: 50,
+    wearFrequency: 3,
+    clothingLifespan: 24
+};
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSliders();
+    initializeNavigation();
+    initializeAnimations();
+    updateProgress();
+    createFloatingParticles();
+});
+
+// Initialize slider functionality
+function initializeSliders() {
+    const clothingSlider = document.getElementById('clothingCount');
+    const wearSlider = document.getElementById('wearFrequency');
+    const lifespanSlider = document.getElementById('clothingLifespan');
+    
+    const clothingValue = document.getElementById('clothingValue');
+    const wearValue = document.getElementById('wearValue');
+    const lifespanValue = document.getElementById('lifespanValue');
+
+    // Clothing count slider
+    clothingSlider.addEventListener('input', function() {
+        const value = this.value;
+        clothingValue.textContent = value;
+        userData.clothingCount = parseInt(value);
+        animateValueChange(clothingValue);
+    });
+
+    // Wear frequency slider
+    wearSlider.addEventListener('input', function() {
+        const value = this.value;
+        wearValue.textContent = value;
+        userData.wearFrequency = parseInt(value);
+        animateValueChange(wearValue);
+    });
+
+    // Lifespan slider
+    lifespanSlider.addEventListener('input', function() {
+        const value = this.value;
+        lifespanValue.textContent = value;
+        userData.clothingLifespan = parseInt(value);
+        animateValueChange(lifespanValue);
+    });
+}
+
+// Animate value changes
+function animateValueChange(element) {
+    element.style.transform = 'scale(1.2)';
+    element.style.color = '#f5576c';
+    setTimeout(() => {
+        element.style.transform = 'scale(1)';
+        element.style.color = '#667eea';
+    }, 200);
+}
+
+// Navigation functionality
+function initializeNavigation() {
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const sections = document.querySelectorAll('.section');
+
+    navTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            
+            // Remove active class from all tabs and sections
+            navTabs.forEach(t => t.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            // Add active class to clicked tab and target section
+            this.classList.add('active');
+            document.getElementById(targetSection).classList.add('active');
+            
+            // Animate scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+}
+
+// Initialize scroll animations
+function initializeAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        observer.observe(el);
+    });
+}
+
+// Update progress bar
+function updateProgress() {
+    const progress = (currentQuestion / 3) * 100;
+    document.querySelector('.progress-fill').style.width = progress + '%';
+}
+
+// Move to next question
+function nextQuestion() {
+    const currentCard = document.getElementById(`question${currentQuestion}`);
+    currentQuestion++;
+    const nextCard = document.getElementById(`question${currentQuestion}`);
+    
+    // Hide current question with animation
+    currentCard.style.opacity = '0';
+    currentCard.style.transform = 'translateX(-50px)';
+    
+    setTimeout(() => {
+        currentCard.classList.add('hidden');
+        nextCard.classList.remove('hidden');
+        
+        // Show next question with animation
+        setTimeout(() => {
+            nextCard.style.opacity = '1';
+            nextCard.style.transform = 'translateX(0)';
+        }, 100);
+        
+        updateProgress();
+    }, 300);
+}
+
+// Calculate environmental footprint
+function calculateFootprint() {
+    const currentCard = document.getElementById(`question${currentQuestion}`);
+    const resultsCard = document.getElementById('results');
+    
+    // Hide current question
+    currentCard.style.opacity = '0';
+    currentCard.style.transform = 'translateX(-50px)';
+    
+    setTimeout(() => {
+        currentCard.classList.add('hidden');
+        resultsCard.classList.remove('hidden');
+        
+        // Calculate impacts
+        const impacts = calculateImpacts();
+        
+        // Animate results
+        animateResults(impacts);
+        
+        // Generate recommendations
+        generateRecommendations(impacts);
+        
+        // Update progress to 100%
+        document.querySelector('.progress-fill').style.width = '100%';
+        
+    }, 300);
+}
+
+// Calculate environmental impacts
+function calculateImpacts() {
+    const { clothingCount, wearFrequency, clothingLifespan } = userData;
+    
+    // Base calculations (approximate values based on industry data)
+    const waterPerItem = 2700; // liters per clothing item production
+    const carbonPerItem = 8.5; // kg CO2 per clothing item
+    const wastePerItem = 0.3; // kg waste per item
+    
+    // Calculate annual impact
+    const itemsPerYear = (clothingCount * 12) / clothingLifespan;
+    const utilizationFactor = Math.max(0.1, Math.min(1, wearFrequency / 4)); // Efficiency factor
+    
+    const waterImpact = Math.round(itemsPerYear * waterPerItem / utilizationFactor);
+    const carbonImpact = Math.round(itemsPerYear * carbonPerItem / utilizationFactor);
+    const wasteImpact = Math.round(itemsPerYear * wastePerItem / utilizationFactor * 10) / 10;
+    
+    return {
+        water: waterImpact,
+        carbon: carbonImpact,
+        waste: wasteImpact,
+        utilizationFactor: utilizationFactor
+    };
+}
+
+// Animate results display
+function animateResults(impacts) {
+    const waterElement = document.getElementById('waterImpact');
+    const carbonElement = document.getElementById('carbonImpact');
+    const wasteElement = document.getElementById('wasteImpact');
+    
+    // Animate numbers counting up
+    animateNumber(waterElement, 0, impacts.water, 2000);
+    setTimeout(() => animateNumber(carbonElement, 0, impacts.carbon, 2000), 500);
+    setTimeout(() => animateNumber(wasteElement, 0, impacts.waste, 2000, 1), 1000);
+}
+
+// Animate number counting
+function animateNumber(element, start, end, duration, decimals = 0) {
+    const startTime = performance.now();
+    
+    function updateNumber(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const current = start + (end - start) * easeOutQuart(progress);
+        element.textContent = current.toFixed(decimals);
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateNumber);
+        }
+    }
+    
+    requestAnimationFrame(updateNumber);
+}
+
+// Easing function for smooth animation
+function easeOutQuart(t) {
+    return 1 - (--t) * t * t * t;
+}
+
+// Generate personalized recommendations
+function generateRecommendations(impacts) {
+    const { clothingCount, wearFrequency, clothingLifespan } = userData;
+    const recommendationsElement = document.getElementById('recommendationsList');
+    
+    let recommendations = [];
+    let potentialReduction = 0;
+    
+    // Analyze usage patterns and generate recommendations
+    if (wearFrequency < 2) {
+        recommendations.push({
+            icon: '👔',
+            title: 'Wear Items More Often',
+            description: 'You could reduce your impact by 25% by wearing each item 2-3 more times per month.',
+            impact: 25
+        });
+        potentialReduction += 25;
+    }
+    
+    if (clothingLifespan < 36) {
+        recommendations.push({
+            icon: '🔧',
+            title: 'Extend Clothing Lifespan',
+            description: 'Keeping clothes for 3+ years instead of 2 could reduce your impact by 35%.',
+            impact: 35
+        });
+        potentialReduction += 35;
+    }
+    
+    if (clothingCount > 100) {
+        recommendations.push({
+            icon: '🎯',
+            title: 'Curate Your Wardrobe',
+            description: 'Reducing your wardrobe by 30% and focusing on versatile pieces could cut impact by 20%.',
+            impact: 20
+        });
+        potentialReduction += 20;
+    }
+    
+    recommendations.push({
+        icon: '♻️',
+        title: 'Choose Sustainable Fabrics',
+        description: 'Switching to organic cotton, hemp, or recycled materials can reduce impact by 15%.',
+        impact: 15
+    });
+    
+    recommendations.push({
+        icon: '🤝',
+        title: 'Buy Second-Hand',
+        description: 'Purchasing 50% of clothes second-hand could reduce your footprint by 40%.',
+        impact: 40
+    });
+    
+    recommendations.push({
+        icon: '💧',
+        title: 'Wash in Cold Water',
+        description: 'Cold water washing and air drying can reduce your clothing impact by 10%.',
+        impact: 10
+    });
+    
+    // Display recommendations
+    const maxReduction = Math.min(potentialReduction, 70); // Cap at 70% max reduction
+    
+    recommendationsElement.innerHTML = `
+        <div class="impact-summary">
+            <h4>🌟 You could reduce your impact by up to ${maxReduction}% with these changes:</h4>
+        </div>
+        <div class="recommendations-grid">
+            ${recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <div class="rec-icon">${rec.icon}</div>
+                    <div class="rec-content">
+                        <h5>${rec.title}</h5>
+                        <p>${rec.description}</p>
+                        <span class="impact-badge">-${rec.impact}% impact</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Restart calculator
+function restartCalculator() {
+    currentQuestion = 1;
+    userData = {
+        clothingCount: 50,
+        wearFrequency: 3,
+        clothingLifespan: 24
+    };
+    
+    // Reset sliders
+    document.getElementById('clothingCount').value = 50;
+    document.getElementById('wearFrequency').value = 3;
+    document.getElementById('clothingLifespan').value = 24;
+    document.getElementById('clothingValue').textContent = '50';
+    document.getElementById('wearValue').textContent = '3';
+    document.getElementById('lifespanValue').textContent = '24';
+    
+    // Hide results and show first question
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('question1').classList.remove('hidden');
+    document.getElementById('question2').classList.add('hidden');
+    document.getElementById('question3').classList.add('hidden');
+    
+    // Reset progress
+    updateProgress();
+    
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Add floating particles effect
+function createFloatingParticles() {
+    const particlesContainer = document.createElement('div');
+    particlesContainer.className = 'particles-container';
+    
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        particlesContainer.appendChild(particle);
+    }
+    
+    document.body.appendChild(particlesContainer);
+}
+
+// Add interactive hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover sound effect (visual feedback)
+    const interactiveElements = document.querySelectorAll('.btn-next, .btn-restart, .nav-tab, .tip-card, .stat-card');
+    
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            if (!this.style.transform.includes('scale')) {
+                this.style.transform = this.style.transform + ' scale(1.05)';
+            }
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            this.style.transform = this.style.transform.replace(' scale(1.05)', '');
+        });
+    });
+});
+    </script>
+</body>
+</html>
